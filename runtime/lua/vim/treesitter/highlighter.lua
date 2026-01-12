@@ -525,7 +525,14 @@ function TSHighlighter._on_conceal_line(_, _, buf, row)
 
   -- Do not affect potentially populated highlight state.
   local highlight_states = self._highlight_states
-  self.tree:parse({ row, row })
+
+  -- Skip parse entirely and work with existing trees.
+  -- The async parse from _on_start keeps trees up-to-date and will trigger
+  -- a redraw when complete. This avoids expensive synchronous full-file injection
+  -- scans that happen with has_combined_injections.
+  -- Note: This means conceal may be briefly stale after edits, but will be
+  -- corrected on the next redraw cycle.
+
   self:prepare_highlight_states(row, row)
   on_range_impl(self, buf, row, 0, row + 1, 0, false, true)
   self._highlight_states = highlight_states
